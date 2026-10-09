@@ -4,7 +4,7 @@
 #
 # CMPUT 331 Student Submission License
 # Version 1.0
-# Copyright <<Insert the date here>> <<Insert your name here>>
+# Copyright OCt 9,2026 Angad Chahil
 #
 # Redistribution is forbidden in all circumstances. Use of this software
 # without explicit authorization from the author is prohibited.
@@ -33,11 +33,40 @@
 #-------------------- START ASSIGNMENT HERE ---------------------
 """
 General decryption program
-Author: <<Insert your name here>>
+Author: Angad Chahil
 """
 
 from detectEnglish import isEnglish
 from itertools import permutations
+from cryptomath import gcd, findModInverse
+from a2p3 import decipherMessage
+import a1p1
+a1p1.SHIFTDICT, a1p1.LETTERDICT = a1p1.get_map()
+
+LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+WORD_PERCENTAGE = 50
+LETTER_PERCENTAGE = 85
+
+def affineDecrypt(keyA, keyB, ciphertext):
+    inverse = findModInverse(keyA, len(LETTERS))
+    return ''.join(LETTERS[inverse * (LETTERS.index(c) - keyB) % len(LETTERS)]
+                   if c in LETTERS else c for c in ciphertext)
+
+# sleected which of the cipher decyrpts to actually apply 
+def candidates(ciphertype, ciphertext):
+    if ciphertype == "C":
+        for key in LETTERS:
+            yield a1p1.decrypt(ciphertext, key)
+
+    elif ciphertype == "T":
+         for key in permutations(range(1, numOfColumns + 1)):
+                yield decipherMessage(list(key), ciphertext)
+    elif ciphertype == 'A':
+        for keyA in range(1, len(LETTERS)):
+            if gcd(keyA, len(LETTERS)) == 1:
+                for keyB in range(len(LETTERS)):
+                    yield affineDecrypt(keyA, keyB, ciphertext)
+
 
 def hack(ciphertype: str, ciphertext: str):
     """
@@ -45,11 +74,20 @@ def hack(ciphertype: str, ciphertext: str):
         Input: a line from `ciphers.txt`.
         Output: the decrypted message (or plaintext).
     """
-    raise NotImplementedError()
+    for plaintext in candidates(ciphertype, ciphertext):
+        if isEnglish(plaintext, WORD_PERCENTAGE, LETTER_PERCENTAGE):
+            return plaintext
+
+    return None 
 
 def processing():
     # Add the processing steps here like reading form ciphers.txt, calling the hack function, writing to decrypted.txt, etc.
-    raise NotImplementedError()
+    with open('ciphers.txt') as cipherFile:
+        lines = cipherFile.read().splitlines()
+    with open('decrypted.txt', 'w') as outFile:
+        for line in lines:
+            ciphertype, ciphertext = line.split('; ', 1)
+            outFile.write(hack(ciphertype, ciphertext) + '\n')
 
 def test():
     # Test cases for the hack function. You can add more tests as needed.

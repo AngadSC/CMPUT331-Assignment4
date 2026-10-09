@@ -4,7 +4,7 @@
 #
 # CMPUT 331 Student Submission License
 # Version 1.0
-# Copyright <<Insert the date here>> <<Insert your name here>>
+# Copyright Oct 9, 2026, Angad Chahil
 #
 # Redistribution is forbidden in all circumstances. Use of this software
 # without explicit authorization from the author is prohibited.
@@ -32,11 +32,13 @@
 
 """
 Enhanced substitution cipher solver
-Author: <<Insert your name here>>
+Author: Angad Chahil
 """
 
 import re
 import simpleSubHacker as ssh
+from makeWordPatterns import getWordPattern
+from wordPatterns import allPatterns
 
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -46,7 +48,28 @@ def hackSimpleSub(message: str):
     First runs the textbook program to get an initial, potentially incomplete decipherment.
     Then uses regular expressions and a dictionary to decipher additional letters.
     """
-    raise NotImplementedError()
+
+    mapping = ssh.hackSimpleSub(message)
+    cipherwords = list(dict.fromkeys(w.upper() for w in re.findall('[A-Za-z]+', message)))
+
+    progress = True
+    while progress:
+        progress = False
+        for cipherword in cipherwords:
+            solved = {c: mapping[c][0] for c in LETTERS if len(mapping[c]) == 1}
+            if all(c in solved for c in cipherword):
+                continue
+            unused = ''.join(p for p in LETTERS if p not in solved.values())
+            regex = re.compile(''.join(solved.get(c, '[' + unused + ']') for c in cipherword))
+            # same word pattern keeps repeated cipherletters equal and different ones different
+            matches = [w for w in allPatterns.get(getWordPattern(cipherword), []) if regex.fullmatch(w)]
+            if len(matches) == 1:
+                for cipherletter, plainletter in zip(cipherword, matches[0]):
+                    mapping[cipherletter] = [plainletter]
+                ssh.removeSolvedLettersFromMapping(mapping)
+                progress = True
+
+    return ssh.decryptWithCipherletterMapping(message, mapping)
 
 
 def test():

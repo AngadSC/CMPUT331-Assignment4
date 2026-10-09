@@ -4,7 +4,7 @@
 #
 # CMPUT 331 Student Submission License
 # Version 1.0
-# Copyright <<Insert the date here>> <<Insert your name here>>
+# Copyright OCt 9, 2026, Angad Chahil
 #
 # Redistribution is forbidden in all circumstances. Use of this software
 # without explicit authorization from the author is prohibited.
@@ -32,10 +32,15 @@
 
 """
 Nomenclator cipher
-Author: <<Insert your name here>>
+Author: Angad Chahil
 """
 
+import random 
+import re
+import simpleSubCipher
+
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+WORD = re.compile(r'[A-Za-z0-9](?:\S*[A-Za-z0-9])?')
 
 
 def translateMessage(key: str, message: str, codebook: dict, mode: str):
@@ -46,7 +51,22 @@ def translateMessage(key: str, message: str, codebook: dict, mode: str):
     specifying the action to be taken. Returns a string containing the
     ciphertext (if encrypting) or plaintext (if decrypting).
     """
-    raise NotImplementedError()
+    if mode == "encrypt":
+        lookup = {word.lower(): [str(s) for s in symbols] for word, symbols in codebook.items()}
+        substitute = simpleSubCipher.encryptMessage
+    else:
+        # every symbol maps back to exactly one codebook word
+        lookup = {str(s): [word] for word, symbols in codebook.items() for s in symbols}
+        substitute = simpleSubCipher.decryptMessage
+
+    def translateWord(match):
+        word = match.group()
+        if word.lower() in lookup:
+            return random.choice(lookup[word.lower()])
+        return substitute(key,word)
+    
+    return WORD.sub(translateWord, message)
+
 
 
 def encryptMessage(key: str, message: str, codebook: dict):
