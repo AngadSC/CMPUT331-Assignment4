@@ -59,7 +59,8 @@ def candidates(ciphertype, ciphertext):
             yield a1p1.decrypt(ciphertext, key)
 
     elif ciphertype == "T":
-         for key in permutations(range(1, numOfColumns + 1)):
+        for numOfColumns in range(1, 10):  # keys have fewer than 10 columns
+            for key in permutations(range(1, numOfColumns + 1)):
                 yield decipherMessage(list(key), ciphertext)
     elif ciphertype == 'A':
         for keyA in range(1, len(LETTERS)):
@@ -98,3 +99,4 @@ def test():
 
 if __name__ == '__main__':
     test()
+    processing()
